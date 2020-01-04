@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>{% block title %}{{title}} - {{app_name}}{% endblock %}</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+</head>
+
+<body>
+	<div class="container">
+		<h1>{{app_name}}</h1>
+		{% block containercontent %}{% endblock %}
+		<hr>
+		<div class="footer">
+			<p class="text-muted"><small>This blocker app was created by the <a href="https://twitter.com/djunehor">@djunehor</a>.
+				It is written in Python, using <a href="http://flask.pocoo.org/">Flask</a>
+					and <a href="https://github.com/simplegeo/python-oauth2">python-oauth2</a>. Basic CSS is provided by <a href="http://getbootstrap.com/">Bootstrap</a>.
+			</small>
+			</p>
+		</div>
+	</div>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+Flask
+gunicorn
+python-dotenv
+python-twitter
+requests
+tweepy
+urllib3
+oauth2
+httplib2
+itsdangerous
+Jinja2
+MarkupSafe
+Werkzeug
+Flask-Session

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block containercontent %}
+<p class="lead">Welcome to your page <b>@{{username}}</b>. Here you'll see users you've blocked using {{app_name}}.</p>
+<div class="hero-unit">
+	<table class="table table-responsive">
+		<thead style="font-weight: bold">
+			<tr>
+				<td>ID</td>
+				<td>Username</td>
+				<td>Tweet</td>
+				<td>Tweet Posted</td>
+				<td>Blocked</td>
+			</tr>
+		</thead>
+		<tbody>
+		{%for block in blocks%}
+    	<tr>
+			<td>{{block['id']}}</td>
+			<td>{{block['victim_screen_name']}}</td>
+			<td style="background-color: #d3d3d3; font-style: italic;">{{block['tweet_text']}}</td>
+			<td>{{block['tweet_date']}}</td>
+			<td>{{block['created_at']}}</td>
+		</tr>
+		{%endfor%}
+		</tbody>
+	</table>
+</div>
+{% endblock %}
