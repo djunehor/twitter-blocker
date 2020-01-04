@@ -7,6 +7,7 @@ from threading import Thread
 import os
 import json
 import mysql.connector
+import random
 
 load_dotenv('.env')
 
@@ -22,17 +23,30 @@ auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_token_secret)
 api = API(auth)
 
-auth_url = str(os.getenv('APP_URL'))+'/start'
+auth_url = str(os.getenv('APP_URL')) + '/start'
 
 mydb = None
+
+messages = [
+    'Hello',
+    'Hi'
+    'Bonjour',
+    'Hoi',
+    'Salam',
+    'Hallo',
+    'Namastē',
+    'Olá',
+    'Hallå',
+    'Sawubona'
+]
 
 
 def db_connect():
     global mydb
     mydb = mysql.connector.connect(
-      host=os.getenv('DB_HOST'),
-      user=os.getenv('DB_USER'),
-      passwd=os.getenv('DB_PASSWORD'),
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        passwd=os.getenv('DB_PASSWORD'),
         database=os.getenv('DB_NAME')
     )
 
@@ -86,14 +100,14 @@ def handle(data):
         if not tweet_object:
             return
         tweet = {
-            'id' : tweet_object.id,
-            'id_str' : tweet_object.id_str,
-            'text' : tweet_object.text,
-            'created_at' : tweet_object.created_at,
-            'user' : {
-                'id' : tweet_object.user.id,
-                'id_str' : tweet_object.user.id_str,
-                'screen_name' : tweet_object.user.screen_name,
+            'id': tweet_object.id,
+            'id_str': tweet_object.id_str,
+            'text': tweet_object.text,
+            'created_at': tweet_object.created_at,
+            'user': {
+                'id': tweet_object.user.id,
+                'id_str': tweet_object.user.id_str,
+                'screen_name': tweet_object.user.screen_name,
             },
         }
 
@@ -104,15 +118,29 @@ def handle(data):
         # if no oauth
         oauth = fetch_oauth(user_id)
         if not oauth:
-
+            # Todo: Refactor rotating texts
             # Tell user to authenticate us, so we can complete his/her request
-            text = "Hello @" + handle + ", I noticed you've not given me permission to block on your behalf. Kindly " \
-                                        "visit " + auth_url + " to do that and I'll complete the action once that's done."
+            text1 = random.choice(messages)+", I noticed you've not given me permission to block on your behalf. Kindly " \
+                    "visit " + auth_url + " to do that and I'll complete the action once that's done."
+            text2 = random.choice(messages)+", I need one more thing. Please go here " + auth_url + " to grant me permission to block on your behalf"
+            text3 = random.choice(messages)+", please visit " + auth_url + " and follow the instructions for me to complete your request"
+
+            # Experimenting with alternating texts
+            text = random.choice([text1, text2, text3])
             save_block(decoded['user'], tweet['user'], tweet, False)
         else:
             # In case blocking failed for whatever reason
             block_for_me(oauth, decoded['user'], tweet['user'], tweet, True)
-            text = "Hello @" + handle + ", @" + tweet['user']['screen_name'] + " has been blocked for you."
+
+            # Another random text
+            random_texts = [
+                "User has been blocked for you.",
+                "Done!",
+                "Transaction complete!",
+                "You won't hear from @" + tweet['user']['screen_name'] + " again.",
+                "User won't show on your timeline again.",
+            ]
+            text = random.choice(random_texts)
 
     # Tweet reply
     api.update_status(text, tweet_id)
@@ -122,7 +150,7 @@ def fetch_oauth(user_id):
     connection = db_connect()
     table_name = 'oauths'
 
-    connection.execute('SELECT * FROM `'+ table_name +'` WHERE `id_str`=%s',
+    connection.execute('SELECT * FROM `' + table_name + '` WHERE `id_str`=%s',
                        (user_id,))
     oauth = connection.fetchone()
 
@@ -140,8 +168,8 @@ def fetch_oauth_by_username(screen_name):
     connection = db_connect()
     table_name = 'oauths'
 
-    connection.execute('SELECT * FROM `'+table_name+'` WHERE `screen_name`=%s',
-                       (screen_name, ))
+    connection.execute('SELECT * FROM `' + table_name + '` WHERE `screen_name`=%s',
+                       (screen_name,))
 
     oauth = connection.fetchone()
 
@@ -159,7 +187,7 @@ def update_oauth(oauth, id):
     connection = db_connect()
     table_name = 'oauths'
 
-    query = "UPDATE `"+table_name+"` SET real_oauth_token = %s, real_oauth_token_secret = %s WHERE id = %s"
+    query = "UPDATE `" + table_name + "` SET real_oauth_token = %s, real_oauth_token_secret = %s WHERE id = %s"
     connection.execute(query, (oauth['real_oauth_token'], oauth['real_oauth_token_secret'], id))
 
     mydb.commit()
@@ -171,15 +199,15 @@ def save_oauth(oauth, user):
     connection = db_connect()
     table_name = 'oauths'
 
-    connection.execute("INSERT INTO "+table_name+
+    connection.execute("INSERT INTO " + table_name +
                        "(screen_name, id_str, real_oauth_token, real_oauth_token_secret) "
                        "VALUES ( %s, %s, %s, %s )",
                        (
 
-        user['screen_name'],
-        user['id'],
-        oauth['real_oauth_token'],
-       oauth['real_oauth_token_secret'],
+                           user['screen_name'],
+                           user['id'],
+                           oauth['real_oauth_token'],
+                           oauth['real_oauth_token_secret'],
                        ))
 
     mydb.commit()
@@ -209,24 +237,24 @@ def save_block(user, victim, tweet, completed=True):
 
     table_name = 'blocks'
 
-    connection.execute("INSERT INTO  "+table_name+
-                           "( user_id, user_screen_name, victim_id, victim_screen_name, tweet_id, tweet_text, tweet_date, completed ) "
-                           "VALUES ( "
-                           "%s, %s, %s, %s, %s, %s, %s, %s"
-                           " )"
-            , (
-            user['id'],
-           user['screen_name'],
-            victim['id'],
-            victim['screen_name'],
-            tweet['id'],
-            tweet['text'],
-            tweet['created_at'],
-            1 if completed else 0
+    connection.execute("INSERT INTO  " + table_name +
+                       "( user_id, user_screen_name, victim_id, victim_screen_name, tweet_id, tweet_text, tweet_date, completed ) "
+                       "VALUES ( "
+                       "%s, %s, %s, %s, %s, %s, %s, %s"
+                       " )"
+                       , (
+                           user['id'],
+                           user['screen_name'],
+                           victim['id'],
+                           victim['screen_name'],
+                           tweet['id'],
+                           tweet['text'],
+                           tweet['created_at'],
+                           1 if completed else 0
                        ))
 
     mydb.commit()
-    
+
     return True
 
 
@@ -234,14 +262,14 @@ def save_token(secret, token):
     connection = db_connect()
     table_name = 'tokens'
 
-    connection.execute("INSERT INTO  "+table_name+
-                           "( token, secret ) "
-                           "VALUES ( "
-                           "%s, %s"
-                           " )"
-            , (
-            token,
-            secret,
+    connection.execute("INSERT INTO  " + table_name +
+                       "( token, secret ) "
+                       "VALUES ( "
+                       "%s, %s"
+                       " )"
+                       , (
+                           token,
+                           secret,
                        ))
     mydb.commit()
 
@@ -252,13 +280,12 @@ def fetch_token(token):
     connection = db_connect()
     table_name = 'tokens'
 
-    connection.execute("SELECT * FROM  "+table_name+" WHERE token=%s"
-            , (
-            token,
+    connection.execute("SELECT * FROM  " + table_name + " WHERE token=%s"
+                       , (
+                           token,
                        ))
 
     token = connection.fetchone()
-    
 
     return {
         token[1]: token[2],
@@ -268,9 +295,9 @@ def fetch_token(token):
 def delete_token(token):
     connection = db_connect()
     table_name = 'tokens'
-    connection.execute('DELETE FROM `'+table_name+'` WHERE `token`=%s', (token,))
+    connection.execute('DELETE FROM `' + table_name + '` WHERE `token`=%s', (token,))
     mydb.commit()
-    
+
     return True
 
 
@@ -279,10 +306,10 @@ def fetch_block(user_id, victim_id):
     table_name = 'blocks'
 
     connection.execute(
-        'SELECT * FROM '+table_name+' WHERE user_id=%s AND victim_id=%s ORDER BY id DESC LIMIT 1',
+        'SELECT * FROM ' + table_name + ' WHERE user_id=%s AND victim_id=%s ORDER BY id DESC LIMIT 1',
         (user_id, victim_id))
     block = connection.fetchone()
-    
+
     return {
         'id': block[0],
         'user_id': block[1],
@@ -302,21 +329,21 @@ def fetch_pending_block(user_id):
     table_name = 'blocks'
 
     connection.execute(
-        'SELECT * FROM `'+table_name+'` WHERE `user_id`=%s AND `completed`=0 ORDER BY id DESC LIMIT 1',
+        'SELECT * FROM `' + table_name + '` WHERE `user_id`=%s AND `completed`=0 ORDER BY id DESC LIMIT 1',
         (user_id,))
     block = connection.fetchone()
-    
-    return  {
-        'id' : block[0],
-        'user_id' : block[1],
-        'user_screen_name' : block[2],
-        'victim_id' : block[3],
-        'victim_screen_name' : block[4],
-        'tweet_id' : block[5],
-        'tweet_text' : block[6],
-        'tweet_date' : block[7],
-        'completed' : block[8],
-        'created_at' : block[9],
+
+    return {
+        'id': block[0],
+        'user_id': block[1],
+        'user_screen_name': block[2],
+        'victim_id': block[3],
+        'victim_screen_name': block[4],
+        'tweet_id': block[5],
+        'tweet_text': block[6],
+        'tweet_date': block[7],
+        'completed': block[8],
+        'created_at': block[9],
     } if block else {}
 
 
@@ -325,7 +352,7 @@ def fetch_blocks(username):
     table_name = 'blocks'
 
     connection.execute(
-        'SELECT * FROM `'+table_name+'` WHERE `user_screen_name`=%s ORDER BY id',
+        'SELECT * FROM `' + table_name + '` WHERE `user_screen_name`=%s ORDER BY id',
         (username,))
     blocks = connection.fetchall()
 
@@ -333,18 +360,18 @@ def fetch_blocks(username):
     if blocks:
         for block in blocks:
             results.append({
-                'id' : block[0],
-                'user_id' : block[1],
-                'user_screen_name' : block[2],
-                'victim_id' : block[3],
-                'victim_screen_name' : block[4],
-                'tweet_id' : block[5],
-                'tweet_text' : block[6],
-                'tweet_date' : block[7],
-                'completed' : block[8],
-                'created_at' : block[9],
+                'id': block[0],
+                'user_id': block[1],
+                'user_screen_name': block[2],
+                'victim_id': block[3],
+                'victim_screen_name': block[4],
+                'tweet_id': block[5],
+                'tweet_text': block[6],
+                'tweet_date': block[7],
+                'completed': block[8],
+                'created_at': block[9],
             })
-    
+
     return results
 
 
@@ -353,10 +380,10 @@ def update_block(id):
     table_name = 'blocks'
     # B) Tries to insert an ID (if it does not exist yet)
     # with a specific value in a second column
-    connection.execute("UPDATE `"+table_name+"` SET `times`=times+1, `completed`=%s WHERE `id`=%s",
+    connection.execute("UPDATE `" + table_name + "` SET `times`=times+1, `completed`=%s WHERE `id`=%s",
                        (
-        id,
-        1
+                           id,
+                           1
                        ))
 
     mydb.commit()
@@ -440,7 +467,7 @@ def create_tables():
 
     # Committing changes and closing the connection to the database file
     mydb.commit()
-    
+
 
 def entry():
     create_tables()

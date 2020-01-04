@@ -5,10 +5,9 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import json
-from stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, fetch_pending_block, fetch_blocks,\
+from stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, fetch_pending_block, fetch_blocks, \
     save_token, fetch_token, delete_token, fetch_oauth_by_username
 from threading import Thread
-
 
 t = Thread(target=entry, args=())
 t.daemon = True
@@ -30,7 +29,7 @@ app.config['APP_CONSUMER_SECRET'] = os.getenv(
     'APP_CONSUMER_SECRET', 'API_Secret_from_Twitter')
 
 oauth_store = session
-app_callback_url = os.getenv('APP_URL')+'/callback'
+app_callback_url = os.getenv('APP_URL') + '/callback'
 
 
 @app.route('/')
@@ -47,7 +46,7 @@ def user(username):
     user_oauth = fetch_oauth_by_username(username)
     # print(username, user_oauth)
     if not user_oauth:
-        error_message = "It seems you haven't authorized "+os.getenv('APP_NAME')+" on your twitter account."
+        error_message = "It seems you haven't authorized " + os.getenv('APP_NAME') + " on your twitter account."
         return render_template(
             'error.html',
             app_name=os.getenv('APP_NAME'),
@@ -76,7 +75,7 @@ def start():
     client = oauth.Client(consumer)
     # print('Call back: ', app_callback_url)
     resp, content = client.request(request_token_url, "POST", body=urllib.parse.urlencode({
-                                   "oauth_callback": app_callback_url}))
+        "oauth_callback": app_callback_url}))
 
     if resp['status'] != '200':
         error_message = 'Invalid response, status {status}, {message}'.format(
@@ -128,7 +127,7 @@ def callback():
         return render_template(
             'error.html',
             error_message="callback param(s) missing",
-            app_name= os.getenv('APP_NAME')
+            app_name=os.getenv('APP_NAME')
         )
 
     # unless oauth_token is still stored locally, return error
@@ -136,7 +135,7 @@ def callback():
         return render_template(
             'error.html',
             error_message="oauth_token not found locally",
-            app_name= os.getenv('APP_NAME')
+            app_name=os.getenv('APP_NAME')
         )
 
     # print(oauth_store)
@@ -179,7 +178,7 @@ def callback():
     if real_resp['status'] != '200':
         error_message = "Invalid response from Twitter API GET users/show: {status}".format(
             status=real_resp['status'])
-        return render_template('error.html', error_message=error_message, app_name= os.getenv('APP_NAME'))
+        return render_template('error.html', error_message=error_message, app_name=os.getenv('APP_NAME'))
 
     response = json.loads(real_content.decode('utf-8'))
 
@@ -210,10 +209,11 @@ def callback():
         try:
             block_for_me(oauth_store, user, victim, tweet, True)
 
-            success_message = "User @"+pending_action['victim_screen_name']+" has been blocked for you."
+            success_message = "User @" + pending_action['victim_screen_name'] + " has been blocked for you."
         except Exception as e:
             print('Block Error: ', e)
-            error_message = "An error occurred while trying to block User @" + pending_action['victim_screen_name'] + " for you."
+            error_message = "An error occurred while trying to block User @" + pending_action[
+                'victim_screen_name'] + " for you."
 
     new_oauth = fetch_oauth(user['id'])
     if new_oauth:
@@ -223,10 +223,10 @@ def callback():
 
     return render_template(
         'callback-success.html',
-        app_name= os.getenv('APP_NAME'),
+        app_name=os.getenv('APP_NAME'),
         screen_name=screen_name,
         user_id=user_id, name=name,
-        user_url=os.getenv('APP_URL')+'/user/'+screen_name,
+        user_url=os.getenv('APP_URL') + '/user/' + screen_name,
         friends_count=friends_count,
         statuses_count=statuses_count,
         followers_count=followers_count,
@@ -239,7 +239,7 @@ def callback():
 @app.errorhandler(500)
 def internal_server_error(e):
     print('App Error: ', e)
-    return render_template('error.html', error_message='Uncaught exception', app_name= os.getenv('APP_NAME')), 500
+    return render_template('error.html', error_message='Uncaught exception', app_name=os.getenv('APP_NAME')), 500
 
 
 if __name__ == '__main__':
