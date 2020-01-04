@@ -118,7 +118,6 @@ def fetch_oauth(user_id):
     connection.execute('SELECT * FROM `'+ table_name +'` WHERE `id_str`=%s',
                        (user_id,))
     oauth = connection.fetchone()
-    connection.close()
 
     return {
         'id': oauth[0],
@@ -138,7 +137,6 @@ def fetch_oauth_by_username(screen_name):
                        (screen_name, ))
 
     oauth = connection.fetchone()
-    connection.close()
 
     return {
         'id': oauth[0],
@@ -158,7 +156,7 @@ def update_oauth(oauth, id):
     connection.execute(query, (oauth['real_oauth_token'], oauth['real_oauth_token_secret'], id))
 
     mydb.commit()
-    connection.close()
+    
 
     return True
 
@@ -179,7 +177,7 @@ def save_oauth(oauth, user):
                        ))
 
     mydb.commit()
-    connection.close()
+    
 
     return True
 
@@ -223,7 +221,7 @@ def save_block(user, victim, tweet, completed=True):
                        ))
 
     mydb.commit()
-    connection.close()
+    
     return True
 
 
@@ -241,7 +239,7 @@ def save_token(secret, token):
             secret,
                        ))
     mydb.commit()
-    connection.close()
+    
 
     return True
 
@@ -256,7 +254,7 @@ def fetch_token(token):
                        ))
 
     token = connection.fetchone()
-    connection.close()
+    
 
     return {
         token[1]: token[2],
@@ -268,7 +266,7 @@ def delete_token(token):
     table_name = 'tokens'
     connection.execute('DELETE FROM `'+table_name+'` WHERE `token`=%s', (token,))
     mydb.commit()
-    connection.close()
+    
     return True
 
 
@@ -280,7 +278,7 @@ def fetch_block(user_id, victim_id):
         'SELECT * FROM '+table_name+' WHERE user_id=%s AND victim_id=%s ORDER BY id DESC LIMIT 1',
         (user_id, victim_id))
     block = connection.fetchone()
-    connection.close()
+    
     return {
         'id': block[0],
         'user_id': block[1],
@@ -303,7 +301,7 @@ def fetch_pending_block(user_id):
         'SELECT * FROM `'+table_name+'` WHERE `user_id`=%s AND `completed`=0 ORDER BY id DESC LIMIT 1',
         (user_id,))
     block = connection.fetchone()
-    connection.close()
+    
     return  {
         'id' : block[0],
         'user_id' : block[1],
@@ -342,7 +340,7 @@ def fetch_blocks(username):
                 'completed' : block[8],
                 'created_at' : block[9],
             })
-    connection.close()
+    
     return results
 
 
@@ -358,7 +356,7 @@ def update_block(id):
                        ))
 
     mydb.commit()
-    connection.close()
+    
 
     return True
 
@@ -439,7 +437,7 @@ def create_tables():
 
     # Committing changes and closing the connection to the database file
     mydb.commit()
-    connection.close()
+    
 
 def entry():
     create_tables()
