@@ -12,10 +12,16 @@ Ensure you have Python 3 installed on your device.
 ```
 APP_NAME
 APP_URL
+
 APP_CONSUMER_KEY
 APP_CONSUMER_SECRET
 APP_ACCESS_TOKEN
 APP_ACCESS_TOKEN_SECRET
+
+DB_HOST
+DB_NAME
+DB_USER
+DB_PASSWORD
 ```
 5. Setup a [pipenv](https://pipenv.readthedocs.io/en/latest/) environment, and install dependencies:
    1. `virtualenv twitter-app`

@@ -6,11 +6,9 @@ from dotenv import load_dotenv
 from threading import Thread
 import os
 import json
-import sqlite3
+import mysql.connector
 
 load_dotenv('.env')
-
-sqlite_file = 'blocker_app.sqlite'
 
 # Go to http://apps.twitter.com and create an app.
 # The consumer key and secret will be generated for you after
@@ -25,6 +23,15 @@ auth.set_access_token(access_token, access_token_secret)
 api = API(auth)
 
 auth_url = str(os.getenv('APP_URL'))+'/start'
+
+mydb = mysql.connector.connect(
+  host=os.getenv('DB_HOST'),
+  user=os.getenv('DB_USER'),
+  passwd=os.getenv('DB_PASSWORD'),
+    database=os.getenv('DB_NAME')
+)
+
+connection = mydb.cursor(buffered=True)
 
 
 class StdOutListener(StreamListener):
@@ -107,15 +114,11 @@ def handle(data):
 
 
 def fetch_oauth(user_id):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'oauths'
 
-    connection.execute('SELECT * FROM ' + table_name + ' WHERE id_str=:user_id',
-                           {'user_id': user_id})
+    connection.execute('SELECT * FROM `'+ table_name +'` WHERE `id_str`=%s',
+                       (user_id,))
     oauth = connection.fetchone()
-    conn.commit()
-    conn.close()
 
     return {
         'id': oauth[0],
@@ -128,16 +131,12 @@ def fetch_oauth(user_id):
 
 
 def fetch_oauth_by_username(screen_name):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'oauths'
 
-    connection.execute('SELECT * FROM '+table_name+' WHERE screen_name=:screen_name',
-                       {'screen_name':screen_name})
+    connection.execute('SELECT * FROM `'+table_name+'` WHERE `screen_name`=%s',
+                       (screen_name, ))
 
     oauth = connection.fetchone()
-    conn.commit()
-    conn.close()
 
     return {
         'id': oauth[0],
@@ -150,41 +149,37 @@ def fetch_oauth_by_username(screen_name):
 
 
 def update_oauth(oauth, id):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'oauths'
 
-    query = "UPDATE "+table_name+" SET real_oauth_token = ?, real_oauth_token_secret = ? WHERE id = ?"
+    query = "UPDATE `"+table_name+"` SET real_oauth_token = %s, real_oauth_token_secret = %s WHERE id = %s"
     connection.execute(query, (oauth['real_oauth_token'], oauth['real_oauth_token_secret'], id))
 
-    conn.commit()
-    conn.close()
+    mydb.commit()
 
     return True
 
 
 def save_oauth(oauth, user):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
+
     table_name = 'oauths'
 
     connection.execute("INSERT INTO "+table_name+
                        "(screen_name, id_str, real_oauth_token, real_oauth_token_secret) "
-                       "VALUES ( :screen_name, :id_str, :real_oauth_token, :real_oauth_token_secret )",
-                       {
+                       "VALUES ( %s, %s, %s, %s )",
+                       (
 
-        'screen_name':user['screen_name'],
-        'id_str':user['id'],
-        'real_oauth_token':oauth['real_oauth_token'],
-        'real_oauth_token_secret':oauth['real_oauth_token_secret'],
-    })
+        user['screen_name'],
+        user['id'],
+        oauth['real_oauth_token'],
+       oauth['real_oauth_token_secret'],
+                       ))
 
-    conn.commit()
-    conn.close()
+    mydb.commit()
 
     return True
 
 
+# Not in use
 def validate_oauth(oauth):
     try:
         auth.set_access_token(oauth['real_access_token'], oauth['access_token_secret'])
@@ -202,66 +197,57 @@ def save_block(user, victim, tweet, completed=True):
         victim = dict(victim)
     if not isinstance(tweet, dict):
         tweet = dict(tweet)
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
+
     table_name = 'blocks'
 
     connection.execute("INSERT INTO  "+table_name+
                            "( user_id, user_screen_name, victim_id, victim_screen_name, tweet_id, tweet_text, tweet_date, completed ) "
                            "VALUES ( "
-                           ":user_id, :user_screen_name, :victim_id, :victim_screen_name, :tweet_id, :tweet_text, :tweet_date, :completed"
+                           "%s, %s, %s, %s, %s, %s, %s, %s"
                            " )"
-            , {
-            'user_id': user['id'],
-            'user_screen_name': user['screen_name'],
-            'victim_id': victim['id'],
-            'victim_screen_name': victim['screen_name'],
-            'tweet_id': tweet['id'],
-            'tweet_text': tweet['text'],
-            'tweet_date': tweet['created_at'],
-            'completed': 1 if completed else 0
-    })
+            , (
+            user['id'],
+           user['screen_name'],
+            victim['id'],
+            victim['screen_name'],
+            tweet['id'],
+            tweet['text'],
+            tweet['created_at'],
+            1 if completed else 0
+                       ))
 
-    conn.commit()
-    conn.close()
+    mydb.commit()
 
     return True
 
 
 def save_token(secret, token):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'tokens'
 
     connection.execute("INSERT INTO  "+table_name+
                            "( token, secret ) "
                            "VALUES ( "
-                           ":token, :secret"
+                           "%s, %s"
                            " )"
-            , {
-            'token': token,
-            'secret': secret,
-    })
-
-    conn.commit()
-    conn.close()
+            , (
+            token,
+            secret,
+                       ))
+    mydb.commit()
 
     return True
 
 
 def fetch_token(token):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
+
     table_name = 'tokens'
 
-    connection.execute("SELECT * FROM  "+table_name+" WHERE token=:token"
-            , {
-            'token': token,
-    })
+    connection.execute("SELECT * FROM  "+table_name+" WHERE token=%s"
+            , (
+            token,
+                       ))
 
     token = connection.fetchone()
-    conn.commit()
-    conn.close()
 
     return {
         token[1]: token[2],
@@ -269,32 +255,19 @@ def fetch_token(token):
 
 
 def delete_token(token):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'tokens'
-
-    connection.execute("DELETE FROM "+table_name+" WHERE token=:token"
-            , {
-            'token': token,
-    })
-
-    conn.commit()
-    conn.close()
-
+    connection.execute('DELETE FROM `'+table_name+'` WHERE `token`=%s', (token,))
+    mydb.commit()
     return True
 
 
 def fetch_block(user_id, victim_id):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'blocks'
 
     connection.execute(
-        'SELECT * FROM '+table_name+' WHERE user_id=:user_id AND victim_id=:victim_id ORDER BY id DESC LIMIT 1',
-            {'user_id':user_id, 'victim_id':victim_id})
+        'SELECT * FROM '+table_name+' WHERE user_id=%s AND victim_id=%s ORDER BY id DESC LIMIT 1',
+        (user_id, victim_id))
     block = connection.fetchone()
-    conn.commit()
-    conn.close()
 
     return {
         'id': block[0],
@@ -311,16 +284,12 @@ def fetch_block(user_id, victim_id):
 
 
 def fetch_pending_block(user_id):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'blocks'
 
     connection.execute(
-        'SELECT * FROM '+table_name+' WHERE user_id=:user_id AND completed=0 ORDER BY id DESC LIMIT 1',
-        {'user_id':user_id})
+        'SELECT * FROM `'+table_name+'` WHERE `user_id`=%s AND `completed`=0 ORDER BY id DESC LIMIT 1',
+        (user_id,))
     block = connection.fetchone()
-    conn.commit()
-    conn.close()
 
     return  {
         'id' : block[0],
@@ -337,16 +306,12 @@ def fetch_pending_block(user_id):
 
 
 def fetch_blocks(username):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'blocks'
 
     connection.execute(
-        'SELECT * FROM '+table_name+' WHERE user_screen_name=:username ORDER BY id',
-        {'username':username})
+        'SELECT * FROM `'+table_name+'` WHERE `user_screen_name`=%s ORDER BY id',
+        (username,))
     blocks = connection.fetchall()
-    conn.commit()
-    conn.close()
 
     results = []
     if blocks:
@@ -368,19 +333,16 @@ def fetch_blocks(username):
 
 
 def update_block(id):
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     table_name = 'blocks'
     # B) Tries to insert an ID (if it does not exist yet)
     # with a specific value in a second column
-    connection.execute("UPDATE "+table_name+" SET times=times+1, completed=:completed WHERE id=:id",
-                       {
-        'id':id,
-        'completed':1
-    })
+    connection.execute("UPDATE `"+table_name+"` SET `times`=times+1, `completed`=%s WHERE `id`=%s",
+                       (
+        id,
+        1
+                       ))
 
-    conn.commit()
-    conn.close()
+    mydb.commit()
 
     return True
 
@@ -418,23 +380,22 @@ def print_error(_error):
 
 
 def create_tables():
-    conn = sqlite3.connect(sqlite_file)
-    connection = conn.cursor()
     # Creating a new SQLite table with 1 column
     connection.execute('''
     CREATE TABLE if not exists oauths (
-  id INTEGER PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   screen_name varchar(191) NOT NULL,
   id_str varchar(191) NOT NULL,
   real_oauth_token varchar(191) NOT NULL,
   real_oauth_token_secret varchar(191) NOT NULL,
-  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW()
 );
     ''')
 
     connection.execute('''
      CREATE TABLE if not exists blocks (
-  id INTEGER NOT NULL PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   user_id varchar(191) NOT NULL,
   user_screen_name varchar(191) NOT NULL,
     victim_id varchar(191) NOT NULL,
@@ -444,23 +405,22 @@ def create_tables():
   tweet_date timestamp NULL,
   completed TINYINT(1) DEFAULT 0,
    times INT(11) DEFAULT 0,
-  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW()
 );
     ''')
 
     connection.execute('''
          CREATE TABLE if not exists tokens (
-      id INTEGER NOT NULL PRIMARY KEY,
+      id INT AUTO_INCREMENT PRIMARY KEY,
       token varchar(191) NOT NULL,
       secret varchar(191) NOT NULL,
-      created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+      created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW()
     );
         ''')
 
     # Committing changes and closing the connection to the database file
-    conn.commit()
-    conn.close()
-
 
 def entry():
     create_tables()

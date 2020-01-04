@@ -44,7 +44,7 @@ def home():
 @app.route('/user/<username>')
 def user(username):
     user_oauth = fetch_oauth_by_username(username)
-    # print(user_oauth)
+    # print(username, user_oauth)
     if not user_oauth:
         error_message = "It seems you haven't authorized "+os.getenv('APP_NAME')+" on your twitter account."
         return render_template(
@@ -57,6 +57,7 @@ def user(username):
     return render_template(
         'user.html',
         blocks=blocks,
+        username=username,
         title=username,
         app_name=os.getenv('APP_NAME')
     )
