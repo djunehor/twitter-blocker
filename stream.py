@@ -31,8 +31,6 @@ mydb = mysql.connector.connect(
     database=os.getenv('DB_NAME')
 )
 
-connection = mydb.cursor(buffered=True)
-
 
 class StdOutListener(StreamListener):
     """ A listener handles tweets that are received from the stream.
@@ -114,11 +112,13 @@ def handle(data):
 
 
 def fetch_oauth(user_id):
+    connection = mydb.cursor(buffered=True)
     table_name = 'oauths'
 
     connection.execute('SELECT * FROM `'+ table_name +'` WHERE `id_str`=%s',
                        (user_id,))
     oauth = connection.fetchone()
+    connection.close()
 
     return {
         'id': oauth[0],
@@ -131,12 +131,14 @@ def fetch_oauth(user_id):
 
 
 def fetch_oauth_by_username(screen_name):
+    connection = mydb.cursor(buffered=True)
     table_name = 'oauths'
 
     connection.execute('SELECT * FROM `'+table_name+'` WHERE `screen_name`=%s',
                        (screen_name, ))
 
     oauth = connection.fetchone()
+    connection.close()
 
     return {
         'id': oauth[0],
@@ -149,18 +151,20 @@ def fetch_oauth_by_username(screen_name):
 
 
 def update_oauth(oauth, id):
+    connection = mydb.cursor(buffered=True)
     table_name = 'oauths'
 
     query = "UPDATE `"+table_name+"` SET real_oauth_token = %s, real_oauth_token_secret = %s WHERE id = %s"
     connection.execute(query, (oauth['real_oauth_token'], oauth['real_oauth_token_secret'], id))
 
     mydb.commit()
+    connection.close()
 
     return True
 
 
 def save_oauth(oauth, user):
-
+    connection = mydb.cursor(buffered=True)
     table_name = 'oauths'
 
     connection.execute("INSERT INTO "+table_name+
@@ -175,6 +179,7 @@ def save_oauth(oauth, user):
                        ))
 
     mydb.commit()
+    connection.close()
 
     return True
 
@@ -191,6 +196,7 @@ def validate_oauth(oauth):
 
 
 def save_block(user, victim, tweet, completed=True):
+    connection = mydb.cursor(buffered=True)
     if not isinstance(user, dict):
         user = dict(user)
     if not isinstance(victim, dict):
@@ -217,11 +223,12 @@ def save_block(user, victim, tweet, completed=True):
                        ))
 
     mydb.commit()
-
+    connection.close()
     return True
 
 
 def save_token(secret, token):
+    connection = mydb.cursor(buffered=True)
     table_name = 'tokens'
 
     connection.execute("INSERT INTO  "+table_name+
@@ -234,12 +241,13 @@ def save_token(secret, token):
             secret,
                        ))
     mydb.commit()
+    connection.close()
 
     return True
 
 
 def fetch_token(token):
-
+    connection = mydb.cursor(buffered=True)
     table_name = 'tokens'
 
     connection.execute("SELECT * FROM  "+table_name+" WHERE token=%s"
@@ -248,6 +256,7 @@ def fetch_token(token):
                        ))
 
     token = connection.fetchone()
+    connection.close()
 
     return {
         token[1]: token[2],
@@ -255,20 +264,23 @@ def fetch_token(token):
 
 
 def delete_token(token):
+    connection = mydb.cursor(buffered=True)
     table_name = 'tokens'
     connection.execute('DELETE FROM `'+table_name+'` WHERE `token`=%s', (token,))
     mydb.commit()
+    connection.close()
     return True
 
 
 def fetch_block(user_id, victim_id):
+    connection = mydb.cursor(buffered=True)
     table_name = 'blocks'
 
     connection.execute(
         'SELECT * FROM '+table_name+' WHERE user_id=%s AND victim_id=%s ORDER BY id DESC LIMIT 1',
         (user_id, victim_id))
     block = connection.fetchone()
-
+    connection.close()
     return {
         'id': block[0],
         'user_id': block[1],
@@ -284,13 +296,14 @@ def fetch_block(user_id, victim_id):
 
 
 def fetch_pending_block(user_id):
+    connection = mydb.cursor(buffered=True)
     table_name = 'blocks'
 
     connection.execute(
         'SELECT * FROM `'+table_name+'` WHERE `user_id`=%s AND `completed`=0 ORDER BY id DESC LIMIT 1',
         (user_id,))
     block = connection.fetchone()
-
+    connection.close()
     return  {
         'id' : block[0],
         'user_id' : block[1],
@@ -306,6 +319,7 @@ def fetch_pending_block(user_id):
 
 
 def fetch_blocks(username):
+    connection = mydb.cursor(buffered=True)
     table_name = 'blocks'
 
     connection.execute(
@@ -328,11 +342,12 @@ def fetch_blocks(username):
                 'completed' : block[8],
                 'created_at' : block[9],
             })
-
+    connection.close()
     return results
 
 
 def update_block(id):
+    connection = mydb.cursor(buffered=True)
     table_name = 'blocks'
     # B) Tries to insert an ID (if it does not exist yet)
     # with a specific value in a second column
@@ -343,6 +358,7 @@ def update_block(id):
                        ))
 
     mydb.commit()
+    connection.close()
 
     return True
 
@@ -380,6 +396,7 @@ def print_error(_error):
 
 
 def create_tables():
+    connection = mydb.cursor(buffered=True)
     # Creating a new SQLite table with 1 column
     connection.execute('''
     CREATE TABLE if not exists oauths (
@@ -421,6 +438,8 @@ def create_tables():
         ''')
 
     # Committing changes and closing the connection to the database file
+    mydb.commit()
+    connection.close()
 
 def entry():
     create_tables()
