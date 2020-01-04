@@ -41,18 +41,6 @@ messages = [
 ]
 
 
-def db_connect():
-    global mydb
-    mydb = mysql.connector.connect(
-        host=os.getenv('DB_HOST'),
-        user=os.getenv('DB_USER'),
-        passwd=os.getenv('DB_PASSWORD'),
-        database=os.getenv('DB_NAME')
-    )
-
-    return mydb.cursor(buffered=True)
-
-
 class StdOutListener(StreamListener):
     """ A listener handles tweets that are received from the stream.
     This is a basic listener that just prints received tweets to stdout.
@@ -68,16 +56,17 @@ class StdOutListener(StreamListener):
 
 
 def handle(data):
-    global api, mention, auth_url
 
     # First we decode the payload
     decoded = json.loads(data)
 
     # let's grab some data we need
-    tweet = decoded['text']
-    tweet_id = decoded['id_str'] # we need this so bot can quote tweet when replying
-    handle = decoded['user']['screen_name']
+    tweet_id = decoded['id_str']  # we need this so bot can quote tweet when replying
     user_id = decoded['user']['id_str']
+
+    # Not in use at the moment
+    tweet = decoded['text']
+    handle = decoded['user']['screen_name']
 
     # avoid infinite loop
     if decoded['user']['screen_name'].lower() == mention.lower():
@@ -95,6 +84,7 @@ def handle(data):
     if 'block' not in str(decoded['text'].replace(mention, '')).lower():
         return
     else:
+        # `we need to fetch the quoted tweet so we can save sa evidence
         tweet_object = api.get_status(decoded['in_reply_to_status_id'])
 
         if not tweet_object:
@@ -156,6 +146,21 @@ def handle(data):
 
     # Tweet reply
     api.update_status(text, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
+
+# In order to avoid "MySQL has gone away error. I'm reconnecting to the DB for each DB transaction
+# Todo: Find a more efficient way of persistent DB connection
+
+
+def db_connect():
+    global mydb
+    mydb = mysql.connector.connect(
+        host=os.getenv('DB_HOST'),
+        user=os.getenv('DB_USER'),
+        passwd=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME')
+    )
+
+    return mydb.cursor(buffered=True)
 
 
 def fetch_oauth(user_id):

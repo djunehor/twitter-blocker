@@ -9,6 +9,9 @@ from stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, f
     save_token, fetch_token, delete_token, fetch_oauth_by_username
 from threading import Thread
 
+# We're creating separate thread for streaming
+# so it starts whenever server starts and it keeps running
+
 t = Thread(target=entry, args=())
 t.daemon = True
 t.start()
@@ -28,7 +31,6 @@ app.config['APP_CONSUMER_KEY'] = os.getenv(
 app.config['APP_CONSUMER_SECRET'] = os.getenv(
     'APP_CONSUMER_SECRET', 'API_Secret_from_Twitter')
 
-oauth_store = session
 app_callback_url = os.getenv('APP_URL') + '/callback'
 
 
@@ -50,7 +52,8 @@ def user(username):
         return render_template(
             'error.html',
             app_name=os.getenv('APP_NAME'),
-            error_message=error_message
+            error_message=error_message,
+            title="Not Found"
         )
 
     blocks = fetch_blocks(username)
@@ -83,7 +86,8 @@ def start():
         return render_template(
             'error.html',
             app_name=os.getenv('APP_NAME'),
-            error_message=error_message
+            error_message=error_message,
+            title="API Error"
         )
 
     request_token = dict(urllib.parse.parse_qsl(content))
@@ -96,7 +100,8 @@ def start():
         app_name=os.getenv('APP_NAME'),
         authorize_url=authorize_url,
         oauth_token=oauth_token,
-        request_token_url=request_token_url
+        request_token_url=request_token_url,
+        title='Start'
     )
 
 
@@ -120,14 +125,17 @@ def callback():
         return render_template(
             'error.html',
             error_message="the OAuth request was denied by this user",
-            app_name=os.getenv('APP_NAME')
+            app_name=os.getenv('APP_NAME'),
+            title="Authentication Error"
         )
 
     if not oauth_token or not oauth_verifier:
         return render_template(
             'error.html',
             error_message="callback param(s) missing",
-            app_name=os.getenv('APP_NAME')
+            app_name=os.getenv('APP_NAME'),
+            title="Authentication Error"
+
         )
 
     # unless oauth_token is still stored locally, return error
@@ -135,7 +143,8 @@ def callback():
         return render_template(
             'error.html',
             error_message="oauth_token not found locally",
-            app_name=os.getenv('APP_NAME')
+            app_name=os.getenv('APP_NAME'),
+            title="Authentication Error"
         )
 
     # print(oauth_store)
@@ -157,9 +166,7 @@ def callback():
     screen_name = access_token[b'screen_name'].decode('utf-8')
     user_id = access_token[b'user_id'].decode('utf-8')
 
-    user = {}
-    user['screen_name'] = screen_name
-    user['id'] = user_id
+    user = {'screen_name': screen_name, 'id': user_id}
 
     # These are the tokens you would store long term, someplace safe
     real_oauth_token = access_token[b'oauth_token'].decode('utf-8')
@@ -178,7 +185,12 @@ def callback():
     if real_resp['status'] != '200':
         error_message = "Invalid response from Twitter API GET users/show: {status}".format(
             status=real_resp['status'])
-        return render_template('error.html', error_message=error_message, app_name=os.getenv('APP_NAME'))
+        return render_template(
+            'error.html',
+            error_message=error_message,
+            app_name=os.getenv('APP_NAME'),
+            title="Authentication Error"
+        )
 
     response = json.loads(real_content.decode('utf-8'))
 
@@ -232,14 +244,20 @@ def callback():
         followers_count=followers_count,
         access_token_url=access_token_url,
         error_message=error_message,
-        success_message=success_message
+        success_message=success_message,
+        title='Success'
     )
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
     print('App Error: ', e)
-    return render_template('error.html', error_message='Uncaught exception', app_name=os.getenv('APP_NAME')), 500
+    return render_template(
+        'error.html',
+        error_message='Uncaught exception',
+        app_name=os.getenv('APP_NAME'),
+        title='Internal Server Error'
+    ), 500
 
 
 if __name__ == '__main__':
