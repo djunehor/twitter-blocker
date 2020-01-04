@@ -122,14 +122,15 @@ def handle(data):
             # Tell user to authenticate us, so we can complete his/her request
             text1 = random.choice(messages)+", I noticed you've not given me permission to block on your behalf. Kindly " \
                     "visit " + auth_url + " to do that and I'll complete the action once that's done."
-            text2 = random.choice(messages)+", I need one more thing. Please go here " + auth_url + " to grant me permission to block on your behalf"
-            text3 = random.choice(messages)+", please visit " + auth_url + " and follow the instructions for me to complete your request"
+            text2 = random.choice(messages)+", I need one more thing. Please go here " + auth_url + " to grant me permission to block on your behalf."
+            text3 = random.choice(messages)+", please visit " + auth_url + " and follow the instructions for me to complete your request."
+            text4 = random.choice(messages)+", you need to authenticate here " + auth_url + " before I can block for you."
+            text5 = random.choice(messages)+", once you authenticate here" + auth_url + " I won't ask for authentication again."
 
             # Experimenting with alternating texts
-            text = random.choice([text1, text2, text3])
+            text = random.choice([text1, text2, text3, text4, text5])
             save_block(decoded['user'], tweet['user'], tweet, False)
         else:
-            # In case blocking failed for whatever reason
             block_for_me(oauth, decoded['user'], tweet['user'], tweet, True)
 
             # Another random text
@@ -139,6 +140,15 @@ def handle(data):
                 "Transaction complete!",
                 "You won't hear from @" + tweet['user']['screen_name'] + " again.",
                 "User won't show on your timeline again.",
+                "I have blocked the user for you.",
+                "User is blocked",
+                "User blocked",
+                "User has been served a RED card",
+                tweet['user']['screen_name'] +" will no longer show on your timeline.",
+                "I'm sure you have good reasons. I've blocked the user as requested.",
+                "Sometimes, it's best to avoid some people than engage. User blocked.",
+                "I'm sure this is the right decision. User has been blocked for you.",
+                "View your blocked users here "+os.getenv('APP_URL')+"/start"
             ]
             text = random.choice(random_texts)
 
