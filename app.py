@@ -12,7 +12,7 @@ from threading import Thread
 
 t = Thread(target=entry, args=())
 t.daemon = True
-#t.start()
+t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
