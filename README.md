@@ -4,7 +4,7 @@ A simple Twitter bot to help block users more efficiently
 - https://twitter-please-block.herokuapp.com
 
 ## Setup
-Ensure you have Python 3 installed on your device.
+Ensure you have Python 3 installed on your device, as well as MySQL.
 1. Git clone this repo
 2. Obtain consumer key and secret from the Twitter Developer portal. The app should be configured to enable Sign in with Twitter:
 3. `cd twitter-app`.
@@ -23,11 +23,12 @@ DB_NAME
 DB_USER
 DB_PASSWORD
 ```
-5. Setup a [pipenv](https://pipenv.readthedocs.io/en/latest/) environment, and install dependencies:
+5. Create database
+6. Setup a [pipenv](https://pipenv.readthedocs.io/en/latest/) environment, and install dependencies:
    1. `virtualenv twitter-app`
    2. `source ../twitter-app/bin/activate` on mac or `../twitter-app/bin/activate` windows
    3. `pip install -r requirements.txt`
-6. Start the app:
+7. Start the app:
    1. `python app.py`; or
    2. `gunicorn app:app`
 

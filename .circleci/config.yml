@@ -1,0 +1,37 @@
+version: 2 # use CircleCI 2.0
+jobs: # A basic unit of work in a run
+  build: # runs not using Workflows must have a `build` job as entry point
+    # directory where steps are run
+    docker: # run the steps with Docker
+      # CircleCI Python images available at: https://hub.docker.com/r/circleci/python/
+      - image: circleci/python:3.6.4
+        environment: # environment variables for primary container
+          PIPENV_VENV_IN_PROJECT: true
+
+    steps: # steps that comprise the `build` job
+      - checkout # check out source code to working directory
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
+
+      - run:
+          name: Install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+
+      - run:
+          name: Run unit tests
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            python tests.py

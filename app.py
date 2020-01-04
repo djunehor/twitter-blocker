@@ -9,9 +9,10 @@ from stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, f
     save_token, fetch_token, delete_token, fetch_oauth_by_username
 from threading import Thread
 
+
 t = Thread(target=entry, args=())
 t.daemon = True
-t.start()
+#t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -240,6 +241,6 @@ def internal_server_error(e):
     print('App Error: ', e)
     return render_template('error.html', error_message='Uncaught exception', app_name= os.getenv('APP_NAME')), 500
 
-  
+
 if __name__ == '__main__':
     app.run()

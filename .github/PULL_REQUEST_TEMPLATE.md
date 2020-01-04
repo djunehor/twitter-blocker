@@ -11,5 +11,5 @@ Describe the modifications you've done.
 ### Result
 
 What will change as a result of your pull request? Note that sometimes
-this section is unnecessary because it is self-explanatory based on
+this section is unnecessary because it is cls-explanatory based on
 the solution.
