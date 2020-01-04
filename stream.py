@@ -75,12 +75,12 @@ def handle(data):
 
     # let's grab some data we need
     tweet = decoded['text']
-    tweet_id = decoded['id_str']
+    tweet_id = decoded['id_str'] # we need this so bot can quote tweet when replying
     handle = decoded['user']['screen_name']
     user_id = decoded['user']['id_str']
 
     # avoid infinite loop
-    if decoded['user']['screen_name'] == mention:
+    if decoded['user']['screen_name'].lower() == mention.lower():
         return
 
     # if no tweet quoted or can't be found
@@ -129,6 +129,8 @@ def handle(data):
 
             # Experimenting with alternating texts
             text = random.choice([text1, text2, text3, text4, text5])
+
+            # save block request, but mark as incomplete
             save_block(decoded['user'], tweet['user'], tweet, False)
         else:
             block_for_me(oauth, decoded['user'], tweet['user'], tweet, True)
@@ -153,7 +155,7 @@ def handle(data):
             text = random.choice(random_texts)
 
     # Tweet reply
-    api.update_status(text, tweet_id)
+    api.update_status(text, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
 
 
 def fetch_oauth(user_id):
