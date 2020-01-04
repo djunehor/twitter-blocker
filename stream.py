@@ -24,12 +24,19 @@ api = API(auth)
 
 auth_url = str(os.getenv('APP_URL'))+'/start'
 
-mydb = mysql.connector.connect(
-  host=os.getenv('DB_HOST'),
-  user=os.getenv('DB_USER'),
-  passwd=os.getenv('DB_PASSWORD'),
-    database=os.getenv('DB_NAME')
-)
+mydb = None
+
+
+def db_connect():
+    global mydb
+    mydb = mysql.connector.connect(
+      host=os.getenv('DB_HOST'),
+      user=os.getenv('DB_USER'),
+      passwd=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME')
+    )
+
+    return mydb.cursor(buffered=True)
 
 
 class StdOutListener(StreamListener):
@@ -112,7 +119,7 @@ def handle(data):
 
 
 def fetch_oauth(user_id):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'oauths'
 
     connection.execute('SELECT * FROM `'+ table_name +'` WHERE `id_str`=%s',
@@ -130,7 +137,7 @@ def fetch_oauth(user_id):
 
 
 def fetch_oauth_by_username(screen_name):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'oauths'
 
     connection.execute('SELECT * FROM `'+table_name+'` WHERE `screen_name`=%s',
@@ -149,20 +156,19 @@ def fetch_oauth_by_username(screen_name):
 
 
 def update_oauth(oauth, id):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'oauths'
 
     query = "UPDATE `"+table_name+"` SET real_oauth_token = %s, real_oauth_token_secret = %s WHERE id = %s"
     connection.execute(query, (oauth['real_oauth_token'], oauth['real_oauth_token_secret'], id))
 
     mydb.commit()
-    
 
     return True
 
 
 def save_oauth(oauth, user):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'oauths'
 
     connection.execute("INSERT INTO "+table_name+
@@ -177,7 +183,6 @@ def save_oauth(oauth, user):
                        ))
 
     mydb.commit()
-    
 
     return True
 
@@ -194,7 +199,7 @@ def validate_oauth(oauth):
 
 
 def save_block(user, victim, tweet, completed=True):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     if not isinstance(user, dict):
         user = dict(user)
     if not isinstance(victim, dict):
@@ -226,7 +231,7 @@ def save_block(user, victim, tweet, completed=True):
 
 
 def save_token(secret, token):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'tokens'
 
     connection.execute("INSERT INTO  "+table_name+
@@ -239,13 +244,12 @@ def save_token(secret, token):
             secret,
                        ))
     mydb.commit()
-    
 
     return True
 
 
 def fetch_token(token):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'tokens'
 
     connection.execute("SELECT * FROM  "+table_name+" WHERE token=%s"
@@ -262,7 +266,7 @@ def fetch_token(token):
 
 
 def delete_token(token):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'tokens'
     connection.execute('DELETE FROM `'+table_name+'` WHERE `token`=%s', (token,))
     mydb.commit()
@@ -271,7 +275,7 @@ def delete_token(token):
 
 
 def fetch_block(user_id, victim_id):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'blocks'
 
     connection.execute(
@@ -294,7 +298,7 @@ def fetch_block(user_id, victim_id):
 
 
 def fetch_pending_block(user_id):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'blocks'
 
     connection.execute(
@@ -317,7 +321,7 @@ def fetch_pending_block(user_id):
 
 
 def fetch_blocks(username):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'blocks'
 
     connection.execute(
@@ -345,7 +349,7 @@ def fetch_blocks(username):
 
 
 def update_block(id):
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     table_name = 'blocks'
     # B) Tries to insert an ID (if it does not exist yet)
     # with a specific value in a second column
@@ -356,7 +360,6 @@ def update_block(id):
                        ))
 
     mydb.commit()
-    
 
     return True
 
@@ -394,7 +397,7 @@ def print_error(_error):
 
 
 def create_tables():
-    connection = mydb.cursor(buffered=True)
+    connection = db_connect()
     # Creating a new SQLite table with 1 column
     connection.execute('''
     CREATE TABLE if not exists oauths (
