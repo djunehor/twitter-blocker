@@ -1,4 +1,7 @@
 .env
 .idea
 __pycache__
-blocker_app.sqlite
+config.cfg
+templates/develop.html
+develop.py
+.env.develop
