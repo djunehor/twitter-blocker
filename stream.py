@@ -537,13 +537,14 @@ def create_tables():
 
 def entry():
     create_tables()
-    listener = StdOutListener()
-    stream = Stream(auth, listener)
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        listener = StdOutListener()
+        stream = Stream(auth, listener)
 
-    print('Streaming started...')
-    try:
-        stream.filter(track=[mention], is_async=True)
-    except Exception as error:
-        if 'Stream object already connected!' in str(error):
-            print('Started before. Exiting...')
-            exit()
+        print('Streaming started...')
+        try:
+            stream.filter(track=[mention], is_async=True)
+        except Exception as error:
+            if 'Stream object already connected!' in str(error):
+                print('Started before. Exiting...')
+                exit()
