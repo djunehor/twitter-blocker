@@ -81,16 +81,16 @@ def on_mention(data):
     handle = data.user.screen_name
 
     # avoid infinite loop
-    if handle.lower() == mention.lower():
+    if handle.lower() == mention.lower() or user_id == '1166470110015631360':
+        return
+
+    # user can't block self
+    if user_id == tweet.in_reply_to_user_id:
         return
 
     # if no tweet quoted or can't be found
     if not data.in_reply_to_status_id:
         return
-
-    # if in reply to multiple users https://twitter.com/dara_tobi/status/1213220598018715648
-    # if 'entities' in decoded and 'user_mentions' in decoded['entities'] and len(decoded['entities']['user_mentions']) > 1:
-    #     return
 
     # if keyword not included https://twitter.com/theshalvah/status/1213218709403262979
     if 'block' not in str(tweet.replace(mention, '')).lower():
@@ -114,7 +114,7 @@ def on_mention(data):
         }
 
         # If quoted user is the poster user
-        if handle == tweet['user']['screen_name']:
+        if handle.lower == tweet['user']['screen_name'].lower() or user_id == tweet['user']['id_str']:
             return
 
         user = {
@@ -122,6 +122,7 @@ def on_mention(data):
             'id_str' : data.user.id_str,
             'screen_name' : data.user.screen_name,
         }
+
         # if no oauth
         oauth = fetch_oauth(user_id)
         if not oauth:
