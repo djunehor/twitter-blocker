@@ -562,7 +562,10 @@ def entry():
     stream = Stream(auth, listener)
 
     print('Streaming started...')
-    stream.filter(track=[mention], is_async=True)
+    try:
+        stream.filter(track=[mention], is_async=True)
+    except Exception as e:
+        print('Stream Error: ', e)
 
 
 if __name__ == '__main__':

@@ -263,6 +263,5 @@ def internal_server_error(e):
 
 
 if __name__ == '__main__':
-    if 'WERKZEUG_LOADED' not in os.environ:
-        t.start()
+    t.start()
     app.run(host='0.0.0.0', debug=False, use_reloader=False, port=int(os.environ.get('PORT', 5000)))
