@@ -5,21 +5,20 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import json
-from stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, fetch_pending_block, fetch_blocks, \
+from tweet_stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, fetch_pending_block, fetch_blocks, \
     save_token, fetch_token, delete_token, fetch_oauth_by_username
-from multiprocessing import Process
+from threading import Thread
 
 # Experimental
 # try:
-#     os.system("pkill -f stream.py")
+#     os.system("pkill -f tweet_stream.py")
 # except:
 #     pass
 
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-os.system('python stream.py')
-# t = Process(target=entry, args=())
-# t.start()
+t = Thread(target=entry, args=())
+t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)

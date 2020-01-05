@@ -545,13 +545,13 @@ def entry():
 
     import subprocess
 
-    cmd = ['pgrep -f .*python.*stream.py']
+    cmd = ['pgrep -f .*python.*tweet_stream.py']
     process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     my_pid, err = process.communicate()
 
     if len(my_pid.splitlines()) > 0:
-        print("Running")
+        print("Running: ", my_pid)
         exit()
     else:
         print("Not Running")
