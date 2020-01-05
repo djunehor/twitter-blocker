@@ -453,7 +453,7 @@ def block_for_me(oauth, user, victim, tweet, completed=False):
     try:
         new_auth = auth
         new_auth.set_access_token(oauth['real_oauth_token'], oauth['real_oauth_token_secret'])
-        new_api = API(auth)
+        new_api = API(new_auth)
         new_api.create_block(user_id=victim['id'], screen_name=victim['screen_name'])
         del new_auth, new_api
     except Exception as e:
