@@ -56,23 +56,20 @@ class StdOutListener(StreamListener):
 
 def handle(data):
 
-    # First we decode the payload
-    decoded = json.loads(data)
-
     # let's grab some data we need
-    tweet_id = decoded['id_str']  # we need this so bot can quote tweet when replying
-    user_id = decoded['user']['id_str']
+    tweet_id = data.id_str  # we need this so bot can quote tweet when replying
+    user_id = data.user.id_str
 
     # Not in use at the moment
-    tweet = decoded['text']
-    handle = decoded['user']['screen_name']
+    tweet = data.text
+    handle = data.user.screen_name
 
     # avoid infinite loop
-    if decoded['user']['screen_name'].lower() == mention.lower():
+    if handle.lower() == mention.lower():
         return
 
     # if no tweet quoted or can't be found
-    if not decoded['in_reply_to_status_id']:
+    if not data.in_reply_to_status_id:
         return
 
     # if in reply to multiple users https://twitter.com/dara_tobi/status/1213220598018715648
@@ -80,11 +77,11 @@ def handle(data):
     #     return
 
     # if keyword not included https://twitter.com/theshalvah/status/1213218709403262979
-    if 'block' not in str(decoded['text'].replace(mention, '')).lower():
+    if 'block' not in str(tweet.replace(mention, '')).lower():
         return
     else:
         # `we need to fetch the quoted tweet so we can save sa evidence
-        tweet_object = api.get_status(decoded['in_reply_to_status_id'])
+        tweet_object = api.get_status(data.in_reply_to_status_id)
 
         if not tweet_object:
             return
@@ -101,9 +98,14 @@ def handle(data):
         }
 
         # If quoted user is the poster user
-        if decoded['user']['screen_name'] == tweet['user']['screen_name']:
+        if handle == tweet['user']['screen_name']:
             return
 
+        user = {
+            'id' : data.user.id,
+            'id_str' : data.user.id_str,
+            'screen_name' : data.user.screen_name,
+        }
         # if no oauth
         oauth = fetch_oauth(user_id)
         if not oauth:
@@ -120,9 +122,10 @@ def handle(data):
             text = random.choice([text1, text2, text3, text4, text5])
 
             # save block request, but mark as incomplete
-            save_block(decoded['user'], tweet['user'], tweet, False)
+
+            save_block(user, tweet['user'], tweet, False)
         else:
-            block_for_me(oauth, decoded['user'], tweet['user'], tweet, True)
+            block_for_me(oauth, user, tweet['user'], tweet, True)
 
             # Another random text
             random_texts = [
