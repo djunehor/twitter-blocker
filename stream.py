@@ -151,6 +151,7 @@ def handle(data):
                 text = ''
 
     # Tweet reply
+    # Found out tweet will only be a reply if user is tagged/mentioned in the reply
     api.update_status(text, in_reply_to_status_id = tweet_id)
     # save_reply(tweet_id, text)
 
@@ -555,6 +556,8 @@ def entry():
         except requests.exceptions.ConnectionError as error:
             print_error(_error=error)
         except Exception as error:
+            if error == 'Stream object already connected!':
+                exit()
             print(
                 error,
                 f"Sleeping for 5 minute then continuing."
