@@ -49,7 +49,6 @@ class StdOutListener(StreamListener):
     def on_status(self, status):
         # Using threads so incoming requests can be attended to simultenously
         Thread(target=handle(status)).start()
-        print('Fired: ', status.id)
 
     def on_error(self, status):
         print('Error occurred: ', status)
@@ -456,7 +455,7 @@ def block_for_me(oauth, user, victim, tweet, completed=False):
         new_auth.set_access_token(oauth['real_oauth_token'], oauth['real_oauth_token_secret'])
         new_api = API(auth)
         new_api.create_block(user_id=victim['id'], screen_name=victim['screen_name'])
-        del new_auth, api
+        del new_auth, new_api
     except Exception as e:
         print('Block Error: ', e)
         return False
