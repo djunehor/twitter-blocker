@@ -560,7 +560,9 @@ def entry():
 
     listener = StdOutListener()
     stream = Stream(auth, listener)
+    import sys
 
+    print(sys.argv)
     print('Streaming started...')
     try:
         stream.filter(track=[mention], is_async=True)
