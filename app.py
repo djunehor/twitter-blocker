@@ -264,4 +264,4 @@ def internal_server_error(e):
 
 if __name__ == '__main__':
     t.start()
-    app.run(host='0.0.0.0', debug=False, use_reloader=False, port=8080)
+    app.run(host='0.0.0.0', debug=False, use_reloader=False, port=int(os.environ.get('PORT', 5000)))
