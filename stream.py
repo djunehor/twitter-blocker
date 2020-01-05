@@ -125,32 +125,34 @@ def handle(data):
 
             save_block(user, tweet['user'], tweet, False)
         else:
-            block_for_me(oauth, user, tweet['user'], tweet, True)
+            block = block_for_me(oauth, user, tweet['user'], tweet, True)
 
-            # Another random text
-            random_texts = [
-                "User has been blocked for you.",
-                "Done!",
-                "Transaction complete!",
-                "You won't hear from @" + tweet['user']['screen_name'] + " again.",
-                "User won't show on your timeline again.",
-                "I have blocked the user for you.",
-                "User is blocked",
-                "User blocked",
-                "User has been served a RED card",
-                tweet['user']['screen_name'] +" will no longer show on your timeline.",
-                "I'm sure you have good reasons. I've blocked the user as requested.",
-                "Sometimes, it's best to avoid some people than engage. User blocked.",
-                "I'm sure this is the right decision. User has been blocked for you.",
-                "View your blocked users here "+os.getenv('APP_URL')+"/start"
-            ]
-            text = random.choice(random_texts)
+            if block:
+                # Another random text
+                random_texts = [
+                    random.choice(messages)+" @"+user['screen_name']+", User has been blocked for you.",
+                    random.choice(messages)+" @"+user['screen_name']+", Done!",
+                    random.choice(messages)+" @"+user['screen_name']+", Transaction complete!",
+                    random.choice(messages)+" @"+user['screen_name']+", You won't hear from @" + tweet['user']['screen_name'] + " again.",
+                    random.choice(messages)+" @"+user['screen_name']+", User won't show on your timeline again.",
+                    random.choice(messages)+" @"+user['screen_name']+", I have blocked the user for you.",
+                    random.choice(messages)+" @"+user['screen_name']+", User is blocked",
+                    random.choice(messages)+" @"+user['screen_name']+", User blocked",
+                    random.choice(messages)+" @"+user['screen_name']+", User has been served a RED card",
+                    random.choice(messages)+" @"+user['screen_name']+", "+tweet['user']['screen_name'] +" will no longer show on your timeline.",
+                    random.choice(messages)+" @"+user['screen_name']+", I'm sure you have good reasons. I've blocked the user as requested.",
+                    random.choice(messages)+" @"+user['screen_name']+", Sometimes, it's best to avoid some people than engage. User blocked.",
+                    random.choice(messages)+" @"+user['screen_name']+", I'm sure this is the right decision. User has been blocked for you.",
+                    random.choice(messages)+" @"+user['screen_name']+", View your blocked users here "+os.getenv('APP_URL')+"/start"
+                ]
+                text = random.choice(random_texts)
+            else:
+                # Blocking failed na, so?
+                text = ''
 
     # Tweet reply
-    if not fetch_reply(tweet_id):
-        api.update_status(text, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
-        save_reply(tweet_id, text)
-        sleep(2)
+    api.update_status(text, in_reply_to_status_id = tweet_id)
+    # save_reply(tweet_id, text)
 
 # In order to avoid "MySQL has gone away error. I'm reconnecting to the DB for each DB transaction
 # Todo: Find a more efficient way of persistent DB connection
@@ -459,6 +461,7 @@ def block_for_me(oauth, user, victim, tweet, completed=False):
         return False
 
     block = fetch_block(user['id'], victim['id'])
+
     # If block was pending, update. Else, create block
     if block:
         update_block(block['id'])
