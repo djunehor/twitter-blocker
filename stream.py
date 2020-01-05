@@ -49,6 +49,7 @@ class StdOutListener(StreamListener):
     def on_status(self, status):
         # Using threads so incoming requests can be attended to simultenously
         Thread(target=handle(status)).start()
+        print('Fired: ', status.id)
 
     def on_error(self, status):
         print('Error occurred: ', status)
@@ -557,7 +558,7 @@ def entry():
             print_error(_error=error)
         except Exception as error:
             if 'Stream object already connected!' in str(error):
-                exit()
+                stream.disconnect()
             print(
                 error,
                 f"Sleeping for 5 minute then continuing."
