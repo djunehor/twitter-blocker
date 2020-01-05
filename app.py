@@ -13,7 +13,7 @@ from threading import Thread
 # so it starts whenever server starts and it keeps running
 
 t = Thread(target=entry, args=())
-t.daemon = True
+t.daemon = False
 t.start()
 
 app = Flask(__name__)
