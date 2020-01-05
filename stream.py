@@ -114,7 +114,7 @@ def handle(data):
             text2 = random.choice(messages)+" @"+user['screen_name']+", I need one more thing. Please go here " + auth_url + " to grant me permission to block on your behalf."
             text3 = random.choice(messages)+" @"+user['screen_name']+", please visit " + auth_url + " and follow the instructions for me to complete your request."
             text4 = random.choice(messages)+" @"+user['screen_name']+", you need to authenticate here " + auth_url + " before I can block for you."
-            text5 = random.choice(messages)+" @"+user['screen_name']+", once you authenticate here" + auth_url + " I won't ask for authentication again."
+            text5 = random.choice(messages)+" @"+user['screen_name']+", once you authenticate here " + auth_url + " I won't ask for authentication again."
 
             # Experimenting with alternating texts
             text = random.choice([text1, text2, text3, text4, text5])
