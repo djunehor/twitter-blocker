@@ -148,6 +148,7 @@ def handle(data):
     if not fetch_reply(tweet_id):
         api.update_status(text, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
         save_reply(tweet_id, text)
+        sleep(2)
 
 # In order to avoid "MySQL has gone away error. I'm reconnecting to the DB for each DB transaction
 # Todo: Find a more efficient way of persistent DB connection
