@@ -46,10 +46,9 @@ class StdOutListener(StreamListener):
     This is a basic listener that just prints received tweets to stdout.
     """
 
-    def on_data(self, data):
+    def on_status(self, status):
         # Using threads so incoming requests can be attended to simultenously
-        Thread(target=handle(data)).start()
-        return True
+        Thread(target=handle(status)).start()
 
     def on_error(self, status):
         print('Error occurred: ', status)
