@@ -1,1 +1,1 @@
-web: gunicorn -b 0.0.0.0:$PORT app:app && python stream.py
+web: python app.py && python tweet_stream.py
