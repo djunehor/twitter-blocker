@@ -109,12 +109,12 @@ def handle(data):
         if not oauth:
             # Todo: Refactor rotating texts
             # Tell user to authenticate us, so we can complete his/her request
-            text1 = random.choice(messages)+", I noticed you've not given me permission to block on your behalf. Kindly " \
+            text1 = random.choice(messages)+" @"+user['screen_name']+", I noticed you've not given me permission to block on your behalf. Kindly " \
                     "visit " + auth_url + " to do that and I'll complete the action once that's done."
-            text2 = random.choice(messages)+", I need one more thing. Please go here " + auth_url + " to grant me permission to block on your behalf."
-            text3 = random.choice(messages)+", please visit " + auth_url + " and follow the instructions for me to complete your request."
-            text4 = random.choice(messages)+", you need to authenticate here " + auth_url + " before I can block for you."
-            text5 = random.choice(messages)+", once you authenticate here" + auth_url + " I won't ask for authentication again."
+            text2 = random.choice(messages)+" @"+user['screen_name']+", I need one more thing. Please go here " + auth_url + " to grant me permission to block on your behalf."
+            text3 = random.choice(messages)+" @"+user['screen_name']+", please visit " + auth_url + " and follow the instructions for me to complete your request."
+            text4 = random.choice(messages)+" @"+user['screen_name']+", you need to authenticate here " + auth_url + " before I can block for you."
+            text5 = random.choice(messages)+" @"+user['screen_name']+", once you authenticate here" + auth_url + " I won't ask for authentication again."
 
             # Experimenting with alternating texts
             text = random.choice([text1, text2, text3, text4, text5])
