@@ -557,7 +557,6 @@ def entry():
             print_error(_error=error)
         except Exception as error:
             if 'Stream object already connected!' in str(error):
-                stream.disconnect()
                 exit()
             print(
                 error,
