@@ -145,7 +145,7 @@ def handle(data):
             text = random.choice(random_texts)
 
     # Tweet reply
-    if not fetch_reply(decoded['id']):
+    if not fetch_reply(tweet_id):
         api.update_status(text, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
         save_reply(tweet_id, text)
 
@@ -183,13 +183,12 @@ def fetch_reply(tweet_id):
 
 def save_reply(tweet_id, text):
     connection = db_connect()
-    table_name = 'replied'
+    table_name = 'replies'
 
     connection.execute("INSERT INTO " + table_name +
                        "(tweet_id, message) "
                        "VALUES ( %s, %s,)",
                        (
-
                            tweet_id,
                            text
                        ))
