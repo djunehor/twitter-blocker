@@ -187,7 +187,7 @@ def save_reply(tweet_id, text):
 
     connection.execute("INSERT INTO " + table_name +
                        "(tweet_id, message) "
-                       "VALUES ( %s, %s,)",
+                       "VALUES ( %s, %s)",
                        (
                            tweet_id,
                            text
