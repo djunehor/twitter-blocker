@@ -553,7 +553,6 @@ def entry():
     if len(my_pid.splitlines()) > 0:
         print("Running: ", my_pid)
         os.system('pkill -f '+__file__)
-        exit()
     else:
         print("Not Running")
 
