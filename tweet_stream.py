@@ -558,13 +558,18 @@ def create_tables():
 def entry():
     create_tables()
 
-    listener = StdOutListener()
-    stream = Stream(auth, listener)
-    import sys
-
-    print(sys.argv)
-    print('Streaming started...')
+    file = __file__+'.lock'
+    if os.path.exists(file):
+        print('Running already')
+        return
+    else:
+        f = open(file, 'w')
+        f.write(str(random.randint))
+        f.close()
+        print('Streaming started...')
     try:
+        listener = StdOutListener()
+        stream = Stream(auth, listener)
         stream.filter(track=[mention], is_async=True)
     except Exception as e:
         print('Stream Error: ', e)
