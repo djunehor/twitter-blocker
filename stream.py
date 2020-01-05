@@ -538,10 +538,11 @@ def create_tables():
 def entry():
     create_tables()
     pid = str(os.getpid())
-    pidfile = os.getcwd()+"/tmp/mydaemon.pid"
+    pidfile = "/tmp/mydaemon.pid"
 
     if os.path.isfile(pidfile):
         print("Streaming started already...")
+        exit()
     f = open(pidfile, 'w')
     f.write(pid)
     f.close()
