@@ -17,9 +17,8 @@ from threading import Thread
 
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-    t = Thread(target=entry, args=())
-    t.start()
+t = Thread(target=entry, args=())
+t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)

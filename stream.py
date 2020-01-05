@@ -537,14 +537,19 @@ def create_tables():
 
 def entry():
     create_tables()
-    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+    pid = str(os.getpid())
+    pidfile = os.getcwd()+"/tmp/mydaemon.pid"
+
+    if os.path.isfile(pidfile):
+        print("Streaming started already...")
+    f = open(pidfile, 'w')
+    f.write(pid)
+    f.close()
+    try:
         listener = StdOutListener()
         stream = Stream(auth, listener)
 
         print('Streaming started...')
-        try:
-            stream.filter(track=[mention], is_async=True)
-        except Exception as error:
-            if 'Stream object already connected!' in str(error):
-                print('Started before. Exiting...')
-                exit()
+        stream.filter(track=[mention], is_async=True)
+    finally:
+        os.unlink(pidfile)
