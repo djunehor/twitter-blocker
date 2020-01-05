@@ -17,8 +17,10 @@ from multiprocessing import Process
 
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-t = Process(target=entry, args=())
-t.start()
+import subprocess
+subprocess.Popen(["python", "stream.py"])
+# t = Process(target=entry, args=())
+# t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)

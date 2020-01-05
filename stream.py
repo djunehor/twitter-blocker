@@ -559,3 +559,7 @@ def entry():
         stream.filter(track=[mention], is_async=True)
     finally:
         os.unlink(pidfile)
+
+
+if __name__ == '__main__':
+    entry()
