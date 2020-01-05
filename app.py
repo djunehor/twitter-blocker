@@ -7,7 +7,6 @@ import urllib.error
 import json
 from tweet_stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, fetch_pending_block, fetch_blocks, \
     save_token, fetch_token, delete_token, fetch_oauth_by_username
-from threading import Thread
 
 # Experimental
 # try:
@@ -17,8 +16,6 @@ from threading import Thread
 
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-t = Thread(target=entry, args=())
-t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -264,4 +261,4 @@ def internal_server_error(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=False, use_reloader=False, port=5000)
+    app.run(debug=False, use_reloader=False)

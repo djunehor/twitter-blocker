@@ -71,7 +71,7 @@ def check_and_restart_process():
 
 
 def on_mention(data):
-    check_and_restart_process()
+
     # let's grab some data we need
     tweet_id = data.id_str  # we need this so bot can quote tweet when replying
     user_id = data.user.id_str
@@ -561,10 +561,7 @@ def create_tables():
 
 def entry():
     create_tables()
-    streaming()
 
-
-def streaming():
     listener = StdOutListener()
     stream = Stream(auth, listener)
 
