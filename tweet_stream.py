@@ -45,15 +45,33 @@ class StdOutListener(StreamListener):
 
     def on_status(self, status):
         # Using threads so incoming requests can be attended to simultenously
-        Thread(target=handle(status)).start()
+        Thread(target=on_mention(status)).start()
 
     def on_error(self, status):
         print('Error occurred: ', status)
         return True
 
 
-def handle(data):
+def check_and_restart_process():
+    import subprocess
 
+    cmd = ['pgrep -f .*python.*tweet_stream.py']
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    my_pid, err = process.communicate()
+
+    if len(my_pid.splitlines()) > 0:
+        print("Running: ", my_pid)
+        os.system('pkill -f ' + __file__)
+        print("Killed all running processes of ", my_pid)
+    else:
+        print("Not Running")
+
+    streaming()
+
+
+def on_mention(data):
+    check_and_restart_process()
     # let's grab some data we need
     tweet_id = data.id_str  # we need this so bot can quote tweet when replying
     user_id = data.user.id_str
@@ -542,20 +560,10 @@ def create_tables():
 
 def entry():
     create_tables()
+    streaming()
 
-    import subprocess
 
-    cmd = ['pgrep -f .*python.*tweet_stream.py']
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    my_pid, err = process.communicate()
-
-    if len(my_pid.splitlines()) > 0:
-        print("Running: ", my_pid)
-        os.system('pkill -f '+__file__)
-    else:
-        print("Not Running")
-
+def streaming():
     listener = StdOutListener()
     stream = Stream(auth, listener)
 
