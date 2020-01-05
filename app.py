@@ -7,7 +7,7 @@ import urllib.error
 import json
 from stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, fetch_pending_block, fetch_blocks, \
     save_token, fetch_token, delete_token, fetch_oauth_by_username
-from threading import Thread
+from multiprocessing import Process
 
 # Experimental
 # try:
@@ -17,12 +17,11 @@ from threading import Thread
 
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-t = Thread(target=entry, args=())
+t = Process(target=entry, args=())
 t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-app.debug = False
 
 request_token_url = 'https://api.twitter.com/oauth/request_token'
 access_token_url = 'https://api.twitter.com/oauth/access_token'
@@ -265,4 +264,4 @@ def internal_server_error(e):
 
 
 if __name__ == '__main__':
-    app.run(use_reloader=False)
+    app.run(debug=False, use_reloader=False)
