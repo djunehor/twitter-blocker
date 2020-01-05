@@ -452,7 +452,7 @@ def update_block(id):
 
 def block_for_me(oauth, user, victim, tweet, completed=False):
     try:
-        new_auth = auth
+        new_auth = OAuthHandler(consumer_key, consumer_secret)
         new_auth.set_access_token(oauth['real_oauth_token'], oauth['real_oauth_token_secret'])
         new_api = API(new_auth)
         new_api.create_block(user_id=victim['id'], screen_name=victim['screen_name'])
@@ -544,4 +544,9 @@ def entry():
     stream = Stream(auth, listener)
 
     print('Streaming started...')
-    stream.filter(track=[mention], is_async=True)
+    try:
+        stream.filter(track=[mention], is_async=True)
+    except Exception as error:
+        if 'Stream object already connected!' in str(error):
+            print('Started before. Exiting...')
+            exit()
