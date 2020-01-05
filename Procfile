@@ -1,1 +1,1 @@
-web: python tweet_stream.py & python app.py &
+web: python app.py &

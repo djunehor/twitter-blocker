@@ -7,7 +7,7 @@ import urllib.error
 import json
 from tweet_stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, fetch_pending_block, fetch_blocks, \
     save_token, fetch_token, delete_token, fetch_oauth_by_username
-
+from threading import Thread
 # Experimental
 # try:
 #     os.system("pkill -f tweet_stream.py")
@@ -19,6 +19,8 @@ from tweet_stream import block_for_me, save_oauth, fetch_oauth, update_oauth, en
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+t = Thread(entry(),args=())
+
 
 request_token_url = 'https://api.twitter.com/oauth/request_token'
 access_token_url = 'https://api.twitter.com/oauth/access_token'
@@ -261,4 +263,5 @@ def internal_server_error(e):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=False, use_reloader=False)
+    t.start()
+    app.run(host='0.0.0.0', debug=False, use_reloader=False, port=8080)
