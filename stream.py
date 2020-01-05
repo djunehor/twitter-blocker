@@ -119,9 +119,9 @@ def handle(data):
             # Experimenting with alternating texts
             text = random.choice([text1, text2, text3, text4, text5])
 
-            # save block request, but mark as incomplete
-
-            save_block(user, tweet['user'], tweet, False)
+            # save block request if no pending, but mark as incomplete
+            if not fetch_block(user['id'], tweet['user']['id'], False):
+                save_block(user, tweet['user'], tweet, False)
         else:
             block = block_for_me(oauth, user, tweet['user'], tweet, True)
 
@@ -357,13 +357,18 @@ def delete_token(token):
     return True
 
 
-def fetch_block(user_id, victim_id):
+def fetch_block(user_id, victim_id, completed=None):
     connection = db_connect()
     table_name = 'blocks'
 
-    connection.execute(
-        'SELECT * FROM ' + table_name + ' WHERE user_id=%s AND victim_id=%s ORDER BY id DESC LIMIT 1',
-        (user_id, victim_id))
+    if completed:
+        connection.execute(
+            'SELECT * FROM ' + table_name + ' WHERE user_id=%s AND victim_id=%s AND completed=%s ORDER BY id DESC LIMIT 1',
+            (user_id, victim_id, int(completed)))
+    else:
+        connection.execute(
+            'SELECT * FROM ' + table_name + ' WHERE user_id=%s AND victim_id=%s ORDER BY id DESC LIMIT 1',
+            (user_id, victim_id))
     block = connection.fetchone()
 
     return {
