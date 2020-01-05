@@ -52,6 +52,7 @@ class StdOutListener(StreamListener):
 
     def on_error(self, status):
         print('Error occurred: ', status)
+        return True
 
 
 def handle(data):
@@ -543,23 +544,4 @@ def entry():
     stream = Stream(auth, listener)
 
     print('Streaming started...')
-    while True:
-        try:
-            stream.filter(track=[mention], is_async=True)
-        except urllib3.exceptions.ProtocolError as error:
-            print_error(_error=error)
-        except ConnectionResetError as error:
-            print_error(_error=error)
-        except ConnectionError as error:
-            print_error(_error=error)
-        except requests.exceptions.ConnectionError as error:
-            print_error(_error=error)
-        except Exception as error:
-            if 'Stream object already connected!' in str(error):
-                print('Started before')
-                exit()
-            print(
-                error,
-                f"Sleeping for 5 minute then continuing."
-            )
-            sleep(3000)
+    stream.filter(track=[mention], is_async=True)

@@ -9,11 +9,15 @@ from stream import block_for_me, save_oauth, fetch_oauth, update_oauth, entry, f
     save_token, fetch_token, delete_token, fetch_oauth_by_username
 from threading import Thread
 
+# Experimental
+# try:
+#     os.system("pkill -f stream.py")
+# except:
+#     pass
+
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-
 t = Thread(target=entry, args=())
-t.daemon = False
 t.start()
 
 app = Flask(__name__)
