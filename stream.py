@@ -542,23 +542,25 @@ def create_tables():
 
 def entry():
     create_tables()
-    pid = str(os.getpid())
-    pidfile = "/tmp/mydaemon.pid"
 
-    if os.path.isfile(pidfile):
-        print("Streaming started already...")
+    import subprocess
+
+    cmd = ['pgrep -f .*python.*stream.py']
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    my_pid, err = process.communicate()
+
+    if len(my_pid.splitlines()) > 0:
+        print("Running")
         exit()
-    f = open(pidfile, 'w')
-    f.write(pid)
-    f.close()
-    try:
-        listener = StdOutListener()
-        stream = Stream(auth, listener)
+    else:
+        print("Not Running")
 
-        print('Streaming started...')
-        stream.filter(track=[mention], is_async=True)
-    finally:
-        os.unlink(pidfile)
+    listener = StdOutListener()
+    stream = Stream(auth, listener)
+
+    print('Streaming started...')
+    stream.filter(track=[mention], is_async=True)
 
 
 if __name__ == '__main__':

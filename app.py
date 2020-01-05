@@ -17,8 +17,7 @@ from multiprocessing import Process
 
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-import subprocess
-subprocess.Popen(["python", "stream.py"])
+os.system('python stream.py')
 # t = Process(target=entry, args=())
 # t.start()
 

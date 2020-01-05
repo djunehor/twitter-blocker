@@ -1,0 +1,28 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+flask = "*"
+gunicorn = "*"
+python-dotenv = "*"
+python-twitter = "*"
+requests = "*"
+tweepy = "*"
+urllib3 = "*"
+oauth2 = "*"
+httplib2 = "*"
+itsdangerous = "*"
+jinja2 = "*"
+markupsafe = "*"
+werkzeug = "*"
+flask-session = "*"
+mysql-connector = "*"
+
+
+[dev-packages]
+
