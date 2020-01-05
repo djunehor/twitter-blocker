@@ -84,10 +84,6 @@ def on_mention(data):
     if handle.lower() == mention.lower() or user_id == '1166470110015631360':
         return
 
-    # user can't block self
-    if user_id == tweet.in_reply_to_user_id:
-        return
-
     # if no tweet quoted or can't be found
     if not data.in_reply_to_status_id:
         return
