@@ -145,7 +145,9 @@ def handle(data):
             text = random.choice(random_texts)
 
     # Tweet reply
-    api.update_status(text, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
+    if not fetch_reply(decoded['id']):
+        api.update_status(text, in_reply_to_status_id = tweet_id , auto_populate_reply_metadata=True)
+        save_reply(tweet_id, text)
 
 # In order to avoid "MySQL has gone away error. I'm reconnecting to the DB for each DB transaction
 # Todo: Find a more efficient way of persistent DB connection
@@ -161,6 +163,40 @@ def db_connect():
     )
 
     return mydb.cursor(buffered=True)
+
+
+def fetch_reply(tweet_id):
+    connection = db_connect()
+    table_name = 'replies'
+
+    connection.execute('SELECT * FROM `' + table_name + '` WHERE `tweet_id`=%s',
+                       (tweet_id,))
+    reply = connection.fetchone()
+
+    return {
+        'id': reply[0],
+        'tweet_id': reply[1],
+        'message': reply[2],
+        'created_at': reply[3],
+    } if reply else {}
+
+
+def save_reply(tweet_id, text):
+    connection = db_connect()
+    table_name = 'replied'
+
+    connection.execute("INSERT INTO " + table_name +
+                       "(tweet_id, message) "
+                       "VALUES ( %s, %s,)",
+                       (
+
+                           tweet_id,
+                           text
+                       ))
+
+    mydb.commit()
+
+    return True
 
 
 def fetch_oauth(user_id):
@@ -481,6 +517,16 @@ def create_tables():
       updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW()
     );
         ''')
+
+    connection.execute('''
+             CREATE TABLE if not exists replies (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          tweet_id varchar(191) NOT NULL,
+          message varchar(191) NOT NULL,
+          created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE NOW()
+        );
+            ''')
 
     # Committing changes and closing the connection to the database file
     mydb.commit()
