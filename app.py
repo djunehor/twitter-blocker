@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, url_for, session
+from flask import Flask, render_template, request
 import oauth2 as oauth
 import urllib.request
 import urllib.parse
@@ -17,8 +17,9 @@ from threading import Thread
 
 # We're creating separate thread for streaming
 # so it starts whenever server starts and it keeps running
-t = Thread(target=entry, args=())
-t.start()
+if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+    t = Thread(target=entry, args=())
+    t.start()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)

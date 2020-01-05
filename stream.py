@@ -1,11 +1,8 @@
 from tweepy import API, OAuthHandler, Stream, StreamListener
 from time import sleep
-import requests
-import urllib3
 from dotenv import load_dotenv
 from threading import Thread
 import os
-import json
 import mysql.connector
 import random
 
